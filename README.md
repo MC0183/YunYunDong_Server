@@ -48,16 +48,15 @@
 ## tasks/ — 各用户任务目录
 | 文件 | 作用 |
 |------|------|
-| `JW250102/` 等 | 每个用户的独立任务目录（以学号命名） |
+| `XXXXXXXX(学号)/` 等 | 每个用户的独立任务目录（以学号命名） |
 | `config.ini` | 该用户的云运动配置（token、device_id、学校、Login 凭据） |
-| `main.py` | 云运动核心模块副本（从 template 复制） |
+| `main.py` | 云运动核心模块副本（从template复制） |
 | `tools/Login.py` | 登录模块副本 |
 | `tasks_fch/tasklist_*.json` | 该用户的跑步任务列表文件 |
-| `_login_helper.py` | 临时文件（添加任务时生成，登录验证后自动删除） |
-| `history_api.py` | 历史记录 API 脚本副本（首次调用时从 template 复制） |
+| `history_api.py` | 历史记录 API 脚本副本（首次调用时从template复制） |
 
 ## log/ — 运行日志
 | 文件 | 作用 |
 |------|------|
-| `XXXXXXXXX(学号)_XXXXXXXX(日期)_XXXXXX(时间).log` 等 | 每个用户每次运行的日志（学号_日期_时间.log） |
+| `XXXXXXXXX(学号)_XXXXXXXX(日期)_XXXXXX(时间).log` 等 | 每个用户每次运行的日志 |
 | `main_cron.log` | 定时调度主日志 |
