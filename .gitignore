@@ -226,5 +226,5 @@ template/image/*
 tasks/*
 data/tasks.json
 template/tools/Login.py.bak
->>>>>>> c94f357 (First)
 data/users.json
+.gitignore
