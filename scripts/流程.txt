@@ -1,0 +1,95 @@
+整体协作流程
+task_manager.py（任务管理）          run_yyd_tasks.sh（调度执行）
+─────────────────────────           ─────────────────────────
+定义哪些用户要跑、几点跑             到时间后逐个启动 main.py
+      │                                      │
+      ▼                                      ▼
+  tasks.json  ←────────── 桥梁 ──────────  tasks.json
+  devices.json                             每个任务的 dir_path
+task_manager.py 运行流程
+python task_manager.py <子命令> [参数]
+子命令								参数/作用
+add	user password school [--skip-login]	新增一个任务
+delete	id							删除任务及目录
+set_time	id time						修改任务的计划时间
+list									列出所有任务
+add 的 5 个阶段
+add_task(username, password, school_name, skip_login)
+│
+├─ 1. 加载 devices.json，随机分配一台设备和 Android 版本
+│
+├─ 2. 创建 /tasks/{username}/ 目录，从 yunForNewVersion/ 复制项目模板
+│     └─ 若模板不存在，仅创建空目录 + tasks_fch 子目录
+│
+├─ 3. 生成临时 config.ini → 调用 Login 模块静默登录提取凭证
+│     ├─ 生成 _login_helper.py 脚本
+│     ├─ subprocess.run 执行，redirect stdout→stderr 防止日志污染
+│     ├─ 解析 JSON 获取 token / device_id / uuid
+│     ├─ 失败时：交互环境询问是否跳过，非交互环境自动终止
+│     └─ 超时 (60s) 后跳过凭证提取
+│
+├─ 4. 用提取的凭证生成完整 config.ini（含 sign、utc 等）
+│
+└─ 5. 写入 tasks.json，追加一条任务记录
+      { id, username, password, school, device_name, sys_edition,
+        start_time: "06:00", dir_path: "/tasks/{username}" }
+run_yyd_tasks.sh 运行流程
+bash run_yyd_tasks.sh    （通常由 cron 触发）
+启动
+│
+├─ 创建日志目录 /tasks/log/
+├─ 重定向 stdout/stderr → main_cron.log
+│
+├─ 读取 tasks.json ───────────────────────────────────────┐
+│   python3 解析 JSON，输出 "id|start_time|dir_path"        │
+│                                                          │
+├─ while 循环遍历每个任务 ──────────────────────────────────┤
+│   │                                                      │
+│   ├─ 计算延迟：目标时间 vs 当前时间                        │
+│   │   目标未到 → 等待差值秒数                              │
+│   │   目标已过 → DELAY=0 立即执行                          │
+│   │                                                      │
+│   ├─ 写入任务专属日志 → /tasks/log/{project}_{timestamp}.log│
+│   │                                                      │
+│   ├─ 检查 dir_path 是否存在                               │
+│   │   不存在 → 写错误日志 → exit 1 (退出子Shell)            │
+│   │                                                      │
+│   ├─ cd 到 dir_path                                      │
+│   │   失败 → 写错误日志 → exit 1                           │
+│   │                                                      │
+│   ├─ sleep $DELAY (对齐目标时间)                            │
+│   │                                                      │
+│   ├─ 运行 python3 main.py -a -d -t tasks_fch               │
+│   │                                                      │
+│   └─ 根据退出码写结果日志                                   │
+│       0 → SUCCESS                                        │
+│       1 → Token 过期                                      │
+│       2 → 成绩不合格                                       │
+│       3 → 未知错误                                         │
+│                                                          │
+│   ★ 每个任务在独立子 Shell 中后台并发执行 ("() &")           │
+│                                                          │
+├─ wait 等待所有子任务完成                                    │
+│                                                          │
+└─ 输出批次结束标记                                          │
+关键数据流
+                    ┌─────────────┐
+                    │ devices.json │  设备池
+                    └──────┬──────┘
+                           │ 随机抽取
+                           ▼
+  task_manager.py add ──► tasks.json ◄── run_yyd_tasks.sh 读取
+                           │
+                    ┌──────┴──────┐
+                    │  dir_path      指向每个任务目录
+                    └──────┬──────┘
+                           │ cd
+                           ▼
+                    /tasks/{username}/
+                    ├── config.ini      ← task_manager.py 生成
+                    ├── main.py         ← 模板复制
+                    ├── tools/Login.py  ← 模板复制
+                    └── tasks_fch/      ← 模板复制（含 tasklist_*.json）
+                           │
+                           ▼
+                    python3 main.py -a -d -t tasks_fch

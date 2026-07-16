@@ -1,0 +1,10 @@
+flask>=3.0
+gmssl>=3.0
+pycryptodome>=3.0
+requests>=2.0
+tqdm>=4.0
+requests
+tqdm
+schedule
+mitmproxy
+pycryptodome
