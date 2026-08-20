@@ -45,12 +45,11 @@ python server.py
 project/
 ├── server.py              # Flask 后端主程序（所有 REST API）
 ├── build.py               # 构建单文件版前端（内联 CSS/JS）
-├── start.bat              # Windows 一键安装依赖并启动
 ├── requirements.txt       # Python 依赖清单
 ├── DEPLOY.md              # 多服务器部署文档
 ├── README.md              # 本文件
 │
-├── data/                  # JSON 数据存储
+├── data/                  # JSON 数据存储（仓库中仅含空模板，实际数据由运行时生成，不入库）
 │   ├── tasks.json         # 所有用户任务配置
 │   ├── users.json         # 用户账户（用户名、密码、角色、联系方式）
 │   ├── devices.json       # 设备池
@@ -82,6 +81,30 @@ project/
 │
 └── log/                   # 运行日志（JW*_日期_时间.log）
 ```
+
+## 数据与版本控制
+
+`data/` 与 `tasks/` 目录中的**实际数据不入库**，避免用户密码、会话 Token、设备池、任务配置等运行数据泄露到仓库。
+
+### data/ 模板入库
+
+- 仓库中 `data/*.json` 为**空模板**（如 `{"users": []}`、`{"tasks": []}`），保证克隆后目录结构完整
+- 实际运行数据由 `server.py` 运行时生成/维护；文件缺失时自动初始化为空结构（代码内置容错）
+- 本地工作区对 `data/*.json` 设置 `skip-worktree`，`git status` 不再感知数据变化，防止误提交
+
+### 不入库内容
+
+| 内容 | 说明 |
+|------|------|
+| `data/*.json` 实际数据 | 已在 `.gitignore`，仓库仅保留空模板 |
+| `tasks/` | 各用户独立任务目录（JW*） |
+| `log/` | 运行日志（含服务日志） |
+| `venv/`、`build/` | 虚拟环境与构建产物 |
+
+### 维护提示
+
+- **更新模板**：先 `git update-index --no-skip-worktree data/*.json` 解除忽略 → 修改文件 → `git add -f data/*.json` 强制暂存 → 重新执行 `git update-index --skip-worktree data/*.json` 恢复保护
+- **新环境部署**：克隆仓库后 `data/` 为空模板，首次启动 `server.py` 会自动初始化；`users.json` 为空时需手动写入初始管理员账号
 
 ## API 概览
 
