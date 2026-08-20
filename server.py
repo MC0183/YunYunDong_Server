@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Task Management Web Server — 步道乐跑任务管理后台"""
+"""Task Management Web Server — 云运动任务管理后台"""
 import os, sys, json, subprocess, time, hashlib, random, secrets, re
 from pathlib import Path
 from functools import wraps
@@ -346,7 +346,11 @@ def filter_tasks_for_user(user, tasks_list):
 def load_delete_requests():
     if not DELETE_REQUESTS_JSON.exists():
         return {"requests": []}
-    return json.loads(DELETE_REQUESTS_JSON.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(DELETE_REQUESTS_JSON.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) and "requests" in data else {"requests": []}
+    except (json.JSONDecodeError, ValueError):
+        return {"requests": []}
 
 def save_delete_requests(data):
     DELETE_REQUESTS_JSON.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -983,6 +987,15 @@ def history_save(task_id):
             _audit(task_id, "管理员操作", f"导入历史记录")
     return jsonify(result)
 
+def _is_task_log(name):
+    """判断是否为任务运行日志(学号_YYYYMMDD_HHMMSS.log),排除 server.log 等服务日志"""
+    parts = name[:-4].split("_")
+    return (
+        len(parts) >= 3
+        and len(parts[1]) == 8 and parts[1].isdigit()
+        and len(parts[2]) == 6 and parts[2].isdigit()
+    )
+
 @app.route("/api/logs", methods=["GET"])
 @require_auth
 def get_logs():
@@ -992,7 +1005,7 @@ def get_logs():
     log_files = sorted(LOG_DIR.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True)
     groups = {}
     for f in log_files:
-        if not f.is_file() or f.suffix != ".log":
+        if not f.is_file() or f.suffix != ".log" or not _is_task_log(f.name):
             continue
         sid = f.name.split("_")[0]
         # 普通用户只看自己的日志
@@ -1019,7 +1032,9 @@ def get_student_log(sid):
         return jsonify({"error": "无权限"}), 403
     if not LOG_DIR.exists():
         return jsonify({"logs": []})
-    log_files = sorted(LOG_DIR.glob(f"{sid}_*.log"), key=lambda p: p.stat().st_mtime, reverse=True)[:20]
+    log_files = sorted(
+        (p for p in LOG_DIR.glob(f"{sid}_*.log") if _is_task_log(p.name)),
+        key=lambda p: p.stat().st_mtime, reverse=True)[:20]
     logs = []
     for f in log_files:
         lines = f.read_text(encoding="utf-8", errors="replace").splitlines()
@@ -1040,8 +1055,19 @@ def index():
 def static_files(filename):
     return send_from_directory(str(BASE_DIR / "static"), filename)
 
+# 兜底：根路径下的静态文件（style.css, app.js, config.js 等）
+@app.route("/<path:filename>")
+def root_static(filename):
+    p = BASE_DIR / "static" / filename
+    if p.is_file():
+        return send_from_directory(str(BASE_DIR / "static"), filename)
+    return jsonify({"error": "Not Found"}), 404
+
 # ================= 启动 =================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5700))
-    print(f"🚀 任务管理后台启动: http://localhost:{port}")
-    app.run(host="0.0.0.0", port=port, debug=True)
+    if os.environ.get("CORS_ALLOWED", "") == "*":
+        print("CORS: 已放行所有域名（CORS_ALLOWED=*），仅限内网使用")
+    print(f"任务管理后台启动: http://0.0.0.0:{port}")
+    from waitress import serve
+    serve(app, host="0.0.0.0", port=port)

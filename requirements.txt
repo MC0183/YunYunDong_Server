@@ -8,3 +8,4 @@ tqdm
 schedule
 mitmproxy
 pycryptodome
+waitress>=3.0

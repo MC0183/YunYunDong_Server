@@ -4,10 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>任务管理后台</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/style.css">
-<script src="/static/config.js"></script>
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
 </head>
 <body>
 <div id="app">
@@ -39,10 +37,9 @@
 <div class="login-overlay" id="loginPage">
   <div class="login-box">
     <div class="login-icon">🏃</div>
-    <h1 class="login-title">任务管理后台</h1>
-    <p class="login-subtitle">步道乐跑 · 自动化调度系统</p>
+    <h2 class="login-title">任务管理后台</h2>
     <div class="login-form">
-      <input type="text" id="loginUser" class="input" placeholder="用户名" autocomplete="username" onkeydown="if(event.key==='Enter') doLogin()">
+      <input type="text" id="loginUser" class="input" placeholder="用户名" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
       <input type="password" id="loginPass" class="input" placeholder="密码" autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()">
       <button class="btn btn-primary login-btn" onclick="doLogin()" id="loginBtn">登 录</button>
       <div class="login-error" id="loginError"></div>
@@ -73,7 +70,7 @@
   </div>
 </div>
 
-<!-- 删除确认弹窗（管理员直接删除） -->
+<!-- 删除确认弹窗 -->
 <div class="modal-overlay" id="deleteModal" onclick="closeModal(event)">
   <div class="modal modal-sm" onclick="event.stopPropagation()">
     <div class="modal-header">
@@ -81,82 +78,29 @@
       <span class="modal-close" onclick="closeDeleteModal()">&times;</span>
     </div>
     <div class="modal-body">
-      <p>确定要删除任务 <strong id="deleteTaskName"></strong> 吗？</p>
-      <p class="text-muted">此操作会删除任务目录及所有文件，不可恢复。</p>
+      <p>确定要删除这个任务吗？此操作不可撤销。</p>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeDeleteModal()">取消</button>
-      <button class="btn btn-danger" id="confirmDeleteBtn" onclick="doDelete()">确认删除</button>
+      <button class="btn btn-danger" onclick="doDelete()">确认删除</button>
     </div>
   </div>
 </div>
 
-<!-- 删除申请弹窗（普通用户） -->
+<!-- 删除申请弹窗 -->
 <div class="modal-overlay" id="deleteRequestModal" onclick="closeModal(event)">
   <div class="modal modal-sm" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2>📋 申请删除任务</h2>
+      <h2>申请删除任务</h2>
       <span class="modal-close" onclick="closeDeleteRequestModal()">&times;</span>
     </div>
     <div class="modal-body">
-      <p style="margin-bottom:12px;">任务: <strong id="delReqTaskName"></strong></p>
       <label>删除原因</label>
-      <textarea id="delReqReason" class="input" rows="3" placeholder="请说明删除原因..."></textarea>
+      <input type="text" id="deleteReason" placeholder="请填写删除原因" class="input">
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeDeleteRequestModal()">取消</button>
       <button class="btn btn-primary" onclick="submitDeleteRequest()">提交申请</button>
-    </div>
-  </div>
-</div>
-
-<!-- 日志查看弹窗 -->
-<div class="modal-overlay" id="logModal" onclick="closeModal(event)">
-  <div class="modal modal-lg" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <h2 id="logModalTitle">日志</h2>
-      <span class="modal-close" onclick="closeLogModal()">&times;</span>
-    </div>
-    <div class="modal-body" style="padding:0;">
-      <pre class="log-modal-body" id="logModalBody"></pre>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeLogModal()">关闭</button>
-    </div>
-  </div>
-</div>
-
-<!-- 历史记录弹窗 -->
-<div class="modal-overlay" id="historyModal" onclick="closeModal(event)">
-  <div class="modal modal-lg" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <h2 id="historyTitle">📜 历史记录</h2>
-      <span class="modal-close" onclick="closeHistoryModal()">&times;</span>
-    </div>
-    <div class="modal-body" id="historyBody">
-      <div class="logs-empty">加载中...</div>
-    </div>
-    <div class="modal-footer" id="historyFooter">
-      <button class="btn" onclick="closeHistoryModal()">关闭</button>
-    </div>
-  </div>
-</div>
-
-<!-- 修改云运动密码弹窗 -->
-<div class="modal-overlay" id="yunPwdModal" onclick="closeModal(event)">
-  <div class="modal modal-sm" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <h2>🏃 修改云运动密码</h2>
-      <span class="modal-close" onclick="closeYunPwdModal()">&times;</span>
-    </div>
-    <div class="modal-body">
-      <p style="color:#aaa;font-size:13px;margin-bottom:12px;">同步更新任务配置文件和云运动账号密码</p>
-      <label>新密码</label>
-      <input type="text" id="yunPwdInput" class="input" placeholder="输入新密码" autocomplete="off">
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeYunPwdModal()">取消</button>
-      <button class="btn btn-primary" onclick="doChangeYunPassword()">确认修改</button>
     </div>
   </div>
 </div>
@@ -180,6 +124,25 @@
   </div>
 </div>
 
+<!-- 修改云运动密码弹窗 -->
+<div class="modal-overlay" id="yunPwdModal" onclick="closeModal(event)">
+  <div class="modal modal-sm" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2>🏃 修改云运动密码</h2>
+      <span class="modal-close" onclick="closeYunPwdModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <p style="color:#aaa;font-size:13px;margin-bottom:12px;">同步更新任务配置文件和云运动账号密码</p>
+      <label>新密码</label>
+      <input type="text" id="yunPwdInput" class="input" placeholder="输入新密码" autocomplete="off">
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeYunPwdModal()">取消</button>
+      <button class="btn btn-primary" onclick="doChangeYunPassword()">确认修改</button>
+    </div>
+  </div>
+</div>
+
 <!-- 联系方式弹窗 -->
 <div class="modal-overlay" id="contactModal" onclick="closeModal(event)">
   <div class="modal" style="width:520px;" onclick="event.stopPropagation()">
@@ -196,6 +159,30 @@
   </div>
 </div>
 
-<script src="/static/app.js"></script>
+<!-- 日志查看弹窗 -->
+<div class="modal-overlay" id="logModal" onclick="closeModal(event)">
+  <div class="modal modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 id="logModalTitle">📄 日志内容</h2>
+      <span class="modal-close" onclick="closeLogModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <pre class="log-modal-body" id="logModalContent"></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 历史记录弹窗 -->
+<div class="modal-overlay" id="historyModal" onclick="closeModal(event)">
+  <div class="modal" style="width:600px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2>📜 历史记录</h2>
+      <span class="modal-close" onclick="closeHistoryModal()">&times;</span>
+    </div>
+    <div class="modal-body" id="historyBody"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>

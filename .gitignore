@@ -227,4 +227,9 @@ tasks/*
 data/tasks.json
 template/tools/Login.py.bak
 data/users.json
+# 运行数据不入库(仓库中保留空模板)
+data/audit_log.json
+data/delete_requests.json
+data/devices.json
+data/tokens.json
 .gitignore

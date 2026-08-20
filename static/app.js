@@ -7,10 +7,10 @@ let _sidGroups = {};
 let _currentUser = null;
 
 /* ===== Auth ===== */
+/* ===== Auth ===== */
 function getToken() { return localStorage.getItem('task_token'); }
 function setToken(t) { if (t) localStorage.setItem('task_token', t); else localStorage.removeItem('task_token'); }
 function isLoggedIn() { return !!getToken(); }
-function getApiUrl(path) { return (window.API_BASE || '') + path; }
 
 async function apiFetch(url, opts = {}) {
   const token = getToken();
@@ -36,16 +36,17 @@ async function doLogin() {
   const btn = document.getElementById('loginBtn');
   if (!user || !pass) { errEl.textContent = '请输入用户名和密码'; return; }
   btn.disabled = true; btn.textContent = '登录中...'; errEl.textContent = '';
+
   try {
     const r = await window._nativeFetch(getApiUrl('/api/auth/login'), {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({username: user, password: pass})
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username:user, password:pass})
     });
     const d = await r.json();
-    if (r.ok) {
+    if (r.ok && d.token) {
       setToken(d.token);
       _currentUser = d.user;
-      window._apiOnLoginSuccess();
+      window._apiRemember();
       hideLogin();
       await init();
     } else {
@@ -66,12 +67,13 @@ async function doLogout() {
 }
 
 function showLogin() {
-  document.getElementById('loginPage').classList.remove('hidden');
-  document.getElementById('mainContent').innerHTML = '';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
 }
 
 function hideLogin() {
-  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
 }
 
 async function loadUser() {
@@ -162,6 +164,12 @@ async function loadData() {
   } else {
     showLogin();
   }
+  // 如果自动发现失败，显示配对提示
+  setTimeout(function() {
+    if (window._apiNeedsConfig && document.getElementById('loginPage') && document.getElementById('loginPage').style.display !== 'none') {
+      document.getElementById('loginHint').style.display = 'block';
+    }
+  }, 3000);
 })();
 
 /* ================================================================
