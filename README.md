@@ -8,7 +8,7 @@ Web 管理后台，用于管理安徽邮电职业技术学院学生的跑步打�
 pip install -r requirements.txt
 python server.py
 # 浏览器打开 http://localhost:5700
-# 默认管理员: admin / admin888
+# 首次部署：data/ 为空模板，需手动写入初始管理员账号（见「数据与版本控制」）
 ```
 
 前端支持独立部署到任意 Web 服务器（nginx / OpenWRT 路由器），详见 [DEPLOY.md](DEPLOY.md)。

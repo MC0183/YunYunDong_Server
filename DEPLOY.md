@@ -50,7 +50,7 @@ PORT=5700 python server.py
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
 | PORT | 后端监听端口 | 5700 |
-| CORS_ALLOWED | 后端监听端口 | 局域网自动放行 (10.x, 192.168.x, 172.16-31.x) |
+| CORS_ALLOWED | CORS 白名单（逗号分隔，`*` 全部放行） | 局域网自动放行 (10.x, 192.168.x, 172.16-31.x) |
 
 ### 3. 多后端聚合
 
@@ -61,7 +61,7 @@ http://10.0.0.121:5700
 http://10.0.0.122:5700
 ```
 
-前端自动从全部后端并行拉取任务数据并去重合并。前端自动从全部后端并行拉取任务数据并去重合并。
+前端自动从全部后端并行拉取任务数据并去重合并。
 
 添加新任务时可选择存放后端。
 
@@ -101,7 +101,6 @@ CORS_ALLOWED=*
 project/
 ├── server.py          # Flask 后端主程序
 ├── build.py           # 构建单文件版前端
-├── start.bat          # Windows 一键启动
 ├── requirements.txt   # Python 依赖
 ├── data/              # JSON 数据（tasks/users/audit/delete_requests/tokens）
 ├── static/            # 前端源文件（独立部署时可只用此目录或 build/ 产物）
